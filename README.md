@@ -36,12 +36,11 @@ Apenas rode o "HoteApplication"
 
 ### Exemplo de disparo requisição
 ```
- 
-  POST
+  POST - http://localhost:8080/api/v1/reserve
   {
     "clientName": "John Doe",
     "roomType": "FAMILY",
     "checkOutDate": "2024-05-15"
-}
+  }
 ```
     
