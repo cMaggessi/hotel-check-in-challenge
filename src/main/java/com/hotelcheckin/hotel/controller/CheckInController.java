@@ -19,7 +19,7 @@ public class CheckInController {
 
     @PostMapping("/reserve")
     public ResponseEntity<Object> makeReservation(@RequestBody ReservationRequest request) {
-        System.out.println("OI");
+        
         try {
             Reservation reservation = checkInService.makeReservation(request);
             return ResponseEntity.ok(reservation);
