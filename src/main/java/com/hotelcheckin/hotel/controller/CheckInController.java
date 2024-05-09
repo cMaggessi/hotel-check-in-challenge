@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1")
 public class CheckInController {
-
     private final CheckInService checkInService;
 
     public CheckInController(CheckInService checkInService) {
