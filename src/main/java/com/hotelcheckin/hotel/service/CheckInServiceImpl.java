@@ -15,9 +15,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class CheckInServiceImpl implements CheckInService {
 
-    private List<Room> rooms = new ArrayList<>();
+    private final List<Room> rooms = new ArrayList<>();
 
-    private List<Reservation> reservations = new ArrayList<>();
+    private final List<Reservation> reservations = new ArrayList<>();
 
     private AtomicInteger reservationNumber = new AtomicInteger(1);
 
@@ -32,18 +32,24 @@ public class CheckInServiceImpl implements CheckInService {
         rooms.add(new Room(103, RoomType.FAMILY, true));
     }
 
+
+    @Override
+    public List<Room> getAllRooms() {
+         return rooms;
+    }
+
     @Override
     public Reservation makeReservation(ReservationRequest request) {
         // Implementação da lógica de reserva
 
-        Room dispRoom = findAvailableRoom(RoomType.valueOf(request.getRoomType()), request.getCheckOutDate());
+        Room dispRoom = findAvailableRoom(RoomType.valueOf(String.valueOf(request.getRoomType())), request.getCheckOutDate());
 
         if (dispRoom == null) {
             throw new RuntimeException("Não há quartos disponíveis para o tipo de quarto e datas solicitadas.");
         }
 
         // Calcula o valor total da reserva
-        double totalAmount = calculateTotalAmount(request.getRoomType(), request.getCheckOutDate());
+        double totalAmount = calculateTotalAmount(RoomType.valueOf(request.getRoomType()), request.getCheckOutDate());
 
         //Criar a reserva
 
@@ -64,12 +70,15 @@ public class CheckInServiceImpl implements CheckInService {
         return reservation;
     }
 
+
+
     private Room findAvailableRoom(RoomType roomType, LocalDate checkOutDate) {
+        boolean isDisp;
         for (Room room : rooms) {
             if (room.getRoomType().equals(roomType) && room.isAvailable()) {
-                boolean isDisp = true;
+               isDisp = true;
                 for (Reservation reservation : reservations) {
-                    if (reservation.getRoomType().equals(roomType) && reservation.getCheckInDate().isBefore(checkOutDate)) {
+                    if (reservation.getCheckInDate().isBefore(checkOutDate)) {
                         LocalDate.now();
                     }
                 }
@@ -81,20 +90,37 @@ public class CheckInServiceImpl implements CheckInService {
         return null;
     }
 
-    private double calculateTotalAmount(String roomType, LocalDate checkOutDate) {
-        double dailyRate = getDailyRate(roomType, checkOutDate);
-        long nights = ChronoUnit.DAYS.between(LocalDate.now(), checkOutDate);
-        return dailyRate * nights;
+    private double calculateTotalAmount(RoomType roomType, LocalDate checkOutDate) {
+        double dailyRate = 0;
+        //Assumindo que a data do checkIn é a mesma quando disparamos a requisição
+        LocalDate checkInDate = LocalDate.now();
+        // Quantos dias entre checkIn e checkOut
+        long numOfDays = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+
+
+        //Aqui, conforme sugerido, calculamos o preço de cada dia (dailyRate)
+        for(int i = 0 ; i< numOfDays ; i++) {
+            dailyRate += getDailyRate(roomType, checkInDate.plusDays(i));
+        }
+
+        return dailyRate;
     }
 
-    private double getDailyRate(String roomType, LocalDate date) {
+    private double getDailyRate(RoomType roomType, LocalDate date) {
+// Taxa de final de semana é 20% então WEEKEND_TAX = 1.2
+        final double WEEKEND_TAX = 1.2;
+
         int dayOfWeek = date.getDayOfWeek().getValue();
-        if (roomType.equals("SINGLE")) {
-            return (dayOfWeek >= 5) ? 120 : 100;
-        } else if (roomType.equals("COMPANION")) {
-            return (dayOfWeek >= 5) ? 150 : 130;
-        } else if (roomType.equals("FAMILY")) {
-            return (dayOfWeek >= 5) ? 180 : 160;
+
+        //Sugestão para escaparmos do hard coding, obrigado!
+
+
+      if (roomType.equals(RoomType.SINGLE)) {
+            return (dayOfWeek >= 5) ? roomType.getPrice()*WEEKEND_TAX : roomType.getPrice();
+        } else if (roomType.equals(RoomType.COMPANION)) {
+          return (dayOfWeek >= 5) ? roomType.getPrice()*WEEKEND_TAX : roomType.getPrice();
+        } else if (roomType.equals(RoomType.FAMILY)) {
+          return (dayOfWeek >= 5) ? roomType.getPrice()*WEEKEND_TAX : roomType.getPrice();
         } else {
             throw new IllegalArgumentException("Tipo de quarto inválido.");
         }
