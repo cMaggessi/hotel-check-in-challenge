@@ -1,7 +1,7 @@
 
 # Hotel Check In Challenge
 
-Uma pequena aplicação em Spring Rest com os requisitos do app, usando o padrão de organização do mercado e boas práticas de código como desaclopamento / responsabilidade única.
+Uma pequena aplicação em Spring Rest com os requisitos do app, usando o padrão de organização do mercado e boas práticas de código como desacoplamento / responsabilidade única.
 
 
 
